@@ -12,7 +12,7 @@ if (!process.env.SERIAL_BAUDRATE)
   throw new Error("Missing SERIAL_BAUDRATE environment variable");
 // if (!process.env.DESTINATION_ADRESS)
 // throw new Error('Missing DESTINATION_ADRESS environment variable');
-let test = false;
+let valve = false;
 client.on("connect", () => {
   client.subscribe("plante/valve", (err) => {});
   client.subscribe("plante/eau", (err) => {
@@ -111,32 +111,33 @@ xbeeAPI.parser.on("data", function (frame) {
     console.log("AT_COMMAND_RESPONSE");
   } else if (C.FRAME_TYPE.ZIGBEE_IO_DATA_SAMPLE_RX === frame.type) {
     console.log("ZIGBEE_IO_DATA_SAMPLE_RX");
-    // console.log("envoyé par esteban", frame)
+    console.log("envoyé par esteban", frame);
     console.log(frame.digitalSamples.DIO1);
     console.log(frame.digitalSamples.DIO2);
-    // console.log(frame.analogSamples.AD2)
-    // if(frame.digitalSamples.DIO0 === 0 ){
-    //   eteindreLampe()
+    console.log(frame.analogSamples.AD2);
 
-    /*
-      // if(frame.digitalSamples.DIO1 === 0 ){
-      //   ouvrirValve()
+    var hum = frame.analogSamples.AD1;
+    var lignt = frame.analogSamples.AD2;
 
-      // }
-      // if(frame.digitalSamples.DIO2 === 0 ){
-      //   fermerValve()
-      // }
-    */
-    if (frame.analogSamples.AD0 === 0) {
-      fermerValve();
+    // if (frame.digitalSamples.DIO0 === 0) {
+    //   eteindreLampe();
+    // }
+
+    // if (frame.digitalSamples.DIO1 === 0) {
+    //   ouvrirValve();
+    // }
+    // if (frame.digitalSamples.DIO2 === 0) {
+    //   fermerValve();
+    // }
+
+    if (frame.analogSamples.AD1 && frame.analogSamples.AD2) {
+      var data = [hum, lignt];
+      client.publish("plante/stats", data);
     }
-    if (frame.analogSamples.AD0 !== 0) {
-      ouvrirValve();
-    }
-    if (test === true) {
+    if (valve === true) {
       ouvrirValve;
     }
-    if (test === false) {
+    if (valve === false) {
       fermerValve;
     }
     // if(frame.analogSamples.AD3 = 300 && !t ){
