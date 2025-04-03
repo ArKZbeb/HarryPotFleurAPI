@@ -22,12 +22,11 @@ client.on("connect", () => {
       console.log("Souscription réussie à plante/eau");
     }
   });
-  
 });
 client.on("message", (topic, message) => {
   if (topic === "plante/eau") {
     console.log("Message reçu sur plante/eau :", message.toString());
-    
+
     if (message.toString() === "true") {
       console.log("Ouverture de la valve demandée.");
       test = true;
@@ -95,6 +94,14 @@ xbeeAPI.parser.on("data", function (frame) {
     let dataReceived = String.fromCharCode.apply(null, frame.data);
     console.log(">> ZIGBEE_RECEIVE_PACKET >", dataReceived);
     var text = Buffer.from(frame.data).toString("hex");
+    console.log(">> ZIGBEE_RECEIVE_PACKET_FORMATED >", text);
+    const listText = text.split("/");
+    var temp = listText[0];
+    var hum = listText[1];
+    var light = listText[2];
+    var data = [temp, hum, light];
+    client.publish("plante/stats", data);
+    console.log("Transmitted data : ", data);
   }
 
   if (C.FRAME_TYPE.NODE_IDENTIFICATION === frame.type) {
@@ -126,10 +133,10 @@ xbeeAPI.parser.on("data", function (frame) {
     if (frame.analogSamples.AD0 !== 0) {
       ouvrirValve();
     }
-    if(test === true){
+    if (test === true) {
       ouvrirValve;
     }
-    if(test === false){
+    if (test === false) {
       fermerValve;
     }
     // if(frame.analogSamples.AD3 = 300 && !t ){
