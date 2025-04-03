@@ -12,23 +12,32 @@ if (!process.env.SERIAL_BAUDRATE)
   throw new Error("Missing SERIAL_BAUDRATE environment variable");
 // if (!process.env.DESTINATION_ADRESS)
 // throw new Error('Missing DESTINATION_ADRESS environment variable');
-
+let test = false;
 client.on("connect", () => {
   client.subscribe("plante/valve", (err) => {});
   client.subscribe("plante/eau", (err) => {
-    if (!err) {
-      Client.on("message", (topic, message) => {
-        const valveOpen = true;
-        ouvrirValve();
-      });
+    if (err) {
+      console.error("Erreur lors de la souscription à plante/eau", err);
+    } else {
+      console.log("Souscription réussie à plante/eau");
     }
   });
+  
 });
-// client.on("plante/valve", (topic, message) => {
-//   // message is Buffer
-//   console.log(message.toString());
-//   client.end();
-// });
+client.on("message", (topic, message) => {
+  if (topic === "plante/eau") {
+    console.log("Message reçu sur plante/eau :", message.toString());
+    
+    if (message.toString() === "true") {
+      console.log("Ouverture de la valve demandée.");
+      test = true;
+    }
+    if (message.toString() === "false") {
+      console.log("fermeture de la valve demandée.");
+      test = true;
+    }
+  }
+});
 
 const SERIAL_PORT = process.env.SERIAL_PORT;
 // const DESTINATION_ADRESS = process.env.DESTINATION_ADRESS;
@@ -116,6 +125,12 @@ xbeeAPI.parser.on("data", function (frame) {
     }
     if (frame.analogSamples.AD0 !== 0) {
       ouvrirValve();
+    }
+    if(test === true){
+      ouvrirValve;
+    }
+    if(test === false){
+      fermerValve;
     }
     // if(frame.analogSamples.AD3 = 300 && !t ){
     //   allumerLampe()
